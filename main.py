@@ -60,6 +60,7 @@ def check_for_update():
         
         data = response.json()
         latest_version = data["tag_name"]
+        # Direktes Abrufen der Download-URL aus den Assets
         download_url = data["assets"][0]["browser_download_url"]
         response.close()
         
@@ -81,20 +82,11 @@ def download_and_install_update(url, version):
         yellow_led.on()
         red_led.on()
         
-        # Erhalte die endgültige Download-URL durch eine zusätzliche Anfrage
         headers = {"User-Agent": "MicroPython"}
-        initial_response = urequests.get(url, headers=headers)
+        # Direkt den Inhalt von der endgültigen Download-URL abrufen
+        response = urequests.get(url, headers=headers)
         
-        if 'location' in initial_response.headers:
-            final_url = initial_response.headers['location']
-            initial_response.close()
-            
-            # Anfrage an die endgültige URL, um den Inhalt herunterzuladen
-            response = urequests.get(final_url, headers=headers)
-        else:
-            # Falls keine Weiterleitung vorhanden ist, nutze die ursprüngliche Antwort
-            response = initial_response
-        
+        # Dateiinhalt in "main.py" schreiben
         with open("main.py", "w") as f:
             f.write(response.text)
         
@@ -105,7 +97,6 @@ def download_and_install_update(url, version):
         machine.reset()  # Gerät neu starten, um das Update zu aktivieren
     except Exception as e:
         print("Error downloading update:", e)
-
 
 # LEDs in sicheren Zustand versetzen
 def set_initial_led_state():
