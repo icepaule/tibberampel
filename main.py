@@ -9,9 +9,9 @@ import webrepl
 import urequests
 
 # Konfigurationsvariablen für Updates
-CHECK_INTERVAL = 2 * 60 * 60  # 2 Stunden in Sekunden
+CHECK_INTERVAL = 1 * 15 * 60  # 2 Stunden in Sekunden
 REPO_URL = "https://api.github.com/repos/icepaule/tibberampel/releases/latest"
-CURRENT_VERSION = "v1.0.4"  # Aktuelle installierte Version
+CURRENT_VERSION = "v1.1.0"  # Aktuelle installierte Version
 
 # LCD-Initialisierung mit Fehlerbehandlung
 lcd = None
