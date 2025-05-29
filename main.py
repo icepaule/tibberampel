@@ -247,9 +247,10 @@ def main():
         current_time = time.time()
         
         # Jede Minute auf Nachrichten prüfen
-        if current_time - last_update_time >= 60:
+        if current_time - last_update_time >= 15:
             mqtt_client.check_msg()
             last_update_time = current_time
+            set_traffic_light_based_on_price(current_price)
         
         # Alle zwei Stunden auf Updates prüfen
         if current_time - last_check_time >= CHECK_INTERVAL:
