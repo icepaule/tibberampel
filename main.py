@@ -11,7 +11,17 @@ import urequests
 # Konfigurationsvariablen für Updates
 CHECK_INTERVAL = 1 * 15 * 60  # 2 Stunden in Sekunden
 REPO_URL = "https://api.github.com/repos/icepaule/tibberampel/releases/latest"
-CURRENT_VERSION = "v1.1.0"  # Aktuelle installierte Version
+# Version dynamisch aus update.flag lesen
+def get_current_version():
+    try:
+        with open("update.flag") as f:
+            return f.read().strip()
+    except:
+        return "v0.0.0"  # Fallback bei Erstinstallation
+
+CURRENT_VERSION = get_current_version()
+
+## CURRENT_VERSION = "v1.0.4"  # Aktuelle installierte Version
 
 # LCD-Initialisierung mit Fehlerbehandlung
 lcd = None
@@ -65,7 +75,7 @@ def check_for_update():
         response.close()
         
         if latest_version != CURRENT_VERSION:
-            print("New version {latest_version} found! Downloading update...")
+            print("New version {} found! Downloading update...".format(latest_version))
             download_and_install_update(download_url, latest_version)
         else:
             print("No update available. Current version is up-to-date.")
@@ -77,24 +87,33 @@ def check_for_update():
 # Update herunterladen und installieren
 def download_and_install_update(url, version):
     try:
-        # Alle LEDs einschalten, um das Update anzuzeigen
         green_led.on()
         yellow_led.on()
         red_led.on()
-        
+
         headers = {"User-Agent": "MicroPython"}
-        # Direkt den Inhalt von der endgültigen Download-URL abrufen
         response = urequests.get(url, headers=headers)
-        
-        # Dateiinhalt in "main.py" schreiben
-        with open("main.py", "w") as f:
+
+        with open("main_new.py", "w") as f:
             f.write(response.text)
-        
         response.close()
-        print("Update downloaded and installed successfully!")
-        global CURRENT_VERSION
-        CURRENT_VERSION = version
-        machine.reset()  # Gerät neu starten, um das Update zu aktivieren
+
+        with open("update.flag", "w") as f:
+            f.write(version)
+
+        print("Update downloaded. Will be applied on next reboot.")
+
+        if lcd:
+            try:
+                lcd.clear()
+                lcd.move_to(0, 0)
+                lcd.putstr("Update ready.")
+                lcd.move_to(0, 1)
+                lcd.putstr("Rebooting...")
+            except:
+                pass
+
+        machine.reset()
     except Exception as e:
         print("Error downloading update:", e)
 
