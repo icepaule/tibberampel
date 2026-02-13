@@ -1,0 +1,128 @@
+# =============================================================================
+# Tibber Ampel - Strompreis-Visualisierung
+# =============================================================================
+# Steuert eine 3-Farben LED-Ampel (Tasmota ESP8266) basierend auf dem
+# aktuellen Tibber Strompreis-Level
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Ampel auf Gruen: Strom ist guenstig
+# -----------------------------------------------------------------------------
+- id: tibber_ampel_guenstig
+  alias: "Tibber Ampel: Gruen (guenstig)"
+  description: "Schaltet Ampel auf Gruen wenn Strom guenstig ist"
+  trigger:
+    - platform: state
+      entity_id: sensor.tibber_preis_status
+      to: "günstig"
+    - platform: template
+      value_template: >
+        {{ state_attr('sensor.paule_electricity_price', 'price_level') in ['VERY_CHEAP', 'CHEAP'] }}
+  action:
+    - service: switch.turn_off
+      target:
+        entity_id:
+          - switch.tasmota_tibber_ampel_rot
+          - switch.tasmota_tibber_ampel_gelb
+    - service: switch.turn_on
+      target:
+        entity_id: switch.tasmota_tibber_ampel_gruen
+  mode: single
+
+# -----------------------------------------------------------------------------
+# Ampel auf Gelb: Strom ist normal
+# -----------------------------------------------------------------------------
+- id: tibber_ampel_normal
+  alias: "Tibber Ampel: Gelb (normal)"
+  description: "Schaltet Ampel auf Gelb wenn Strom normal teuer ist"
+  trigger:
+    - platform: state
+      entity_id: sensor.tibber_preis_status
+      to: "normal"
+    - platform: template
+      value_template: >
+        {{ state_attr('sensor.paule_electricity_price', 'price_level') == 'NORMAL' }}
+  action:
+    - service: switch.turn_off
+      target:
+        entity_id:
+          - switch.tasmota_tibber_ampel_rot
+          - switch.tasmota_tibber_ampel_gruen
+    - service: switch.turn_on
+      target:
+        entity_id: switch.tasmota_tibber_ampel_gelb
+  mode: single
+
+# -----------------------------------------------------------------------------
+# Ampel auf Rot: Strom ist teuer
+# -----------------------------------------------------------------------------
+- id: tibber_ampel_teuer
+  alias: "Tibber Ampel: Rot (teuer)"
+  description: "Schaltet Ampel auf Rot wenn Strom teuer ist"
+  trigger:
+    - platform: state
+      entity_id: sensor.tibber_preis_status
+      to: "teuer"
+    - platform: template
+      value_template: >
+        {{ state_attr('sensor.paule_electricity_price', 'price_level') in ['EXPENSIVE', 'VERY_EXPENSIVE'] }}
+  action:
+    - service: switch.turn_off
+      target:
+        entity_id:
+          - switch.tasmota_tibber_ampel_gelb
+          - switch.tasmota_tibber_ampel_gruen
+    - service: switch.turn_on
+      target:
+        entity_id: switch.tasmota_tibber_ampel_rot
+  mode: single
+
+# -----------------------------------------------------------------------------
+# Ampel-Initialisierung nach HA-Neustart
+# -----------------------------------------------------------------------------
+- id: tibber_ampel_init
+  alias: "Tibber Ampel: Initialisierung"
+  description: "Setzt die Ampel beim HA-Start auf den aktuellen Preisstatus"
+  trigger:
+    - platform: homeassistant
+      event: start
+  action:
+    - delay:
+        seconds: 30
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: sensor.tibber_preis_status
+              state: "günstig"
+          sequence:
+            - service: switch.turn_off
+              target:
+                entity_id:
+                  - switch.tasmota_tibber_ampel_rot
+                  - switch.tasmota_tibber_ampel_gelb
+            - service: switch.turn_on
+              target:
+                entity_id: switch.tasmota_tibber_ampel_gruen
+        - conditions:
+            - condition: state
+              entity_id: sensor.tibber_preis_status
+              state: "teuer"
+          sequence:
+            - service: switch.turn_off
+              target:
+                entity_id:
+                  - switch.tasmota_tibber_ampel_gelb
+                  - switch.tasmota_tibber_ampel_gruen
+            - service: switch.turn_on
+              target:
+                entity_id: switch.tasmota_tibber_ampel_rot
+      default:
+        - service: switch.turn_off
+          target:
+            entity_id:
+              - switch.tasmota_tibber_ampel_rot
+              - switch.tasmota_tibber_ampel_gruen
+        - service: switch.turn_on
+          target:
+            entity_id: switch.tasmota_tibber_ampel_gelb
+  mode: single

@@ -1,0 +1,45 @@
+# Tasmota Konfiguration fuer Tibber Ampel
+# =========================================
+# ESP8266 (ESP-8266MOD) mit CH340 USB-Serial
+# Tasmota Version: 15.2.0
+#
+# Diese Befehle koennen ueber die Tasmota-Konsole
+# (Web-UI oder Serial) eingegeben werden.
+
+# --- WiFi ---
+SSID1 <DEIN_WLAN_SSID>
+Password1 <DEIN_WLAN_PASSWORT>
+Hostname Tibber-Ampel-01
+
+# --- MQTT ---
+MqttHost <MQTT_BROKER_IP>
+MqttPort 1883
+MqttUser <MQTT_USER>
+MqttPassword <MQTT_PASSWORD>
+Topic tibber-ampel
+
+# --- Geraet ---
+Module 0
+DeviceName Tibber Ampel
+FriendlyName1 Tibber Ampel Rot
+FriendlyName2 Tibber Ampel Gelb
+FriendlyName3 Tibber Ampel Gruen
+
+# --- GPIO Template ---
+# GPIO12 (D6) = Relay1 (Rote LED)
+# GPIO13 (D7) = Relay2 (Gelbe LED)
+# GPIO15 (D8) = Relay3 (Gruene LED)
+Template {"NAME":"Tibber Ampel","GPIO":[0,0,0,0,0,0,0,0,224,225,0,226,0],"FLAG":0,"BASE":18}
+
+# --- GPIO direkt setzen (alternativ zum Template) ---
+Gpio12 224
+Gpio13 225
+Gpio15 226
+
+# --- Betrieb ---
+PowerOnState 0
+TelePeriod 300
+Timezone 99
+
+# --- Einmal-Setup (alles in einem Befehl) ---
+# Backlog SSID1 <SSID>; Password1 <PW>; Hostname Tibber-Ampel-01; MqttHost <IP>; MqttPort 1883; MqttUser <USER>; MqttPassword <PW>; Topic tibber-ampel; Module 0; Gpio12 224; Gpio13 225; Gpio15 226; PowerOnState 0
